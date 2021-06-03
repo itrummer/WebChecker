@@ -20,9 +20,11 @@ def google_query(query_one, api_key, cse_id):
     for start in range(1, 10, 10):
         print(f'Retrieving results starting from index {start}')
         query_results = query_service.cse().list(
-            q=query_one, cx=cse_id, start=start, lr='lang_en', 
-            dateRestrict='y1').execute()
-        all_results += query_results['items']
+            q=query_one, cx=cse_id, start=start, lr='lang_en').execute()
+        nr_results = int(query_results['searchInformation']['totalResults'])
+        print(f'Web query retrieved {nr_results} results')
+        if nr_results > 0:
+            all_results += query_results['items']
     return all_results
 
 def get_web_text(url):
@@ -57,14 +59,20 @@ def extract_text(html_src):
             script.extract()
         text = parsed.get_text()
         print(f'Parsed text with length {len(text)}.')
+        
         lines = [line.strip() for line in text.splitlines()]
         clean_lines = []
         for line in lines:
             clean_lines += [part.strip() for part in line.split("  ")]
         clean_lines = [line for line in clean_lines if len(line)>2]
         print(f'Extracted {len(clean_lines)} lines')
-        return clean_lines
-    except:
+        
+        full_text = " ".join(clean_lines)
+        sentences = full_text.split('.')
+        return sentences
+    
+    except Exception as e:
+        print(f'Exception during extraction: {e}')
         return []
     
 def gsearch_lines(query, key, cse):
