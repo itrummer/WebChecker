@@ -63,12 +63,13 @@ class Access:
         Returns:
             next triple for specific requester
         """
-        cur_idx = self.id_to_ctr[req_id] + 1
+        req_int_id = sum([2**i * req_id[i] for i in range(req_id.shape[0])])
+        cur_idx = self.id_to_ctr[req_int_id] + 1
         while cur_idx < self.nr_afs and not self._is_relevant(cur_idx, pred):
             cur_idx += 1
         
         if cur_idx >= self.nr_afs:
             cur_idx = 0
-        self.id_to_ctr[req_id] = cur_idx
+        self.id_to_ctr[req_int_id] = cur_idx
         
         return self._get_triple(cur_idx)

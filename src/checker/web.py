@@ -97,6 +97,7 @@ class Access():
         Returns:
             data frame containing result lines with file IDs
         """
+        print(f'Issuing query {query}')
         items = google_query(query, self.key, self.cse)
         rows = []
         for docid, result in enumerate(items):

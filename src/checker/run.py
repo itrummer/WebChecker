@@ -7,6 +7,7 @@ import argparse
 import checker.akb
 import checker.rl
 import checker.web
+from stable_baselines3.common.env_checker import check_env
 from stable_baselines3 import A2C
 
 # Login data can be retrieved at https://programmablesearchengine.google.com/
@@ -22,8 +23,11 @@ akb_entity = checker.akb.Access('/Users/immanueltrummer/Papers/WebChecker/akb_en
 akbs = [akb_number, akb_entity]
 
 env = checker.rl.CheckingEnv(akbs, web)
+check_env(env)
 model = A2C('MlpPolicy', env, verbose=True, 
             normalize_advantage=True).learn(total_timesteps=10)
+
+print(f'Matches: {env.matches}')
 
 # akb = checker.akb.Access('/Users/immanueltrummer/Papers/WebChecker/akb_numbers.tsv')
 # entailment = checker.nlp.EntailmentUtil()

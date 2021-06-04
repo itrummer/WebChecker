@@ -22,7 +22,7 @@ class CheckingEnv(gym.Env):
         self.akbs = akbs
         self.web = web
         self.entail = checker.nlp.EntailmentUtil()
-        self.action_space = spaces.MultiBinary([6, 2])
+        self.action_space = spaces.MultiDiscrete([6, 2])
         self.observation_space = spaces.MultiBinary(5)
         self.cur_plan = np.zeros(shape=(5,), dtype=np.int64)
         self.matches = []
@@ -33,6 +33,7 @@ class CheckingEnv(gym.Env):
         Args:
             action: plan property to change and new value
         """
+        print(action)
         prop, value = action
         if prop < 5:
             self.cur_plan[prop] = value
@@ -56,6 +57,7 @@ class CheckingEnv(gym.Env):
         Returns:
             Reward (higher if more matches were found until timeout)
         """
+        print(f'Evaluating plan {self.cur_plan}')
         akb_idx = self.cur_plan[0]
         akb_filter = self.cur_plan[1]
         web_idx = self.cur_plan[2]
@@ -72,6 +74,7 @@ class CheckingEnv(gym.Env):
         for l in web_result.loc[:, 'sentence']:            
             af = triple[0] + ' ' + triple[1] + ' ' +triple[2]
             if self.entail.entails(l, af, ent_seq):
+                print(f'Found match: {af} -> {l}')
                 self.matches.append((af, l))
                 reward += 1
                 
