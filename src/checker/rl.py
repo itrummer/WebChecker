@@ -4,7 +4,9 @@ Created on Jun 3, 2021
 @author: immanueltrummer
 '''
 import gym
+import checker.nlp
 import numpy as np
+import time
 from gym import spaces
 
 class CheckingEnv(gym.Env):
@@ -19,6 +21,7 @@ class CheckingEnv(gym.Env):
         """
         self.akbs = akbs
         self.web = web
+        self.entail = checker.nlp.EntailmentUtil()
         self.action_space = spaces.MultiBinary([6, 2])
         self.observation_space = spaces.MultiBinary(5)
         self.cur_plan = np.zeros(shape=(5,), dtype=np.int64)
@@ -39,10 +42,12 @@ class CheckingEnv(gym.Env):
             reward = self._evaluate()
             done = True
             
-        return self.cur_plan
+        return self.cur_plan, reward, done, {}
         
     def reset(self):
-        gym.Env.reset(self)
+        """ Reset current plan. """
+        for i in range(5):
+            self.cur_plan[i] = 0
         return self.cur_plan
     
     def _evaluate(self):
@@ -55,19 +60,23 @@ class CheckingEnv(gym.Env):
         akb_filter = self.cur_plan[1]
         web_idx = self.cur_plan[2]
         web_filter = self.cur_plan[3]
-        entailment = self.cur_plan[4]
+        ent_seq = self.cur_plan[4]
         
         req_id = self.cur_plan[1:]
         akb = self.akbs[akb_idx]
         triple = akb.next_triple(req_id, akb_filter)
         web_result = self.web.match_triple(triple, web_idx, web_filter)
         
-        for l in web_result.loc[:, 'sentence']:
+        reward = 0
+        start_s = time.time()
+        for l in web_result.loc[:, 'sentence']:            
             af = triple[0] + ' ' + triple[1] + ' ' +triple[2]
-            if entailment.entails_lp(l, af):
-                print(f'Satisfies low-precision check: {l}')
-                if entailment.entails_hp(l, af):
-                    print(f'Entails anti-fact: {l}')
-                    self.matches.append((af, l))
-                else:
-                    print(f'Does not entail anti-fact.')
+            if self.entail.entails(l, af, ent_seq):
+                self.matches.append((af, l))
+                reward += 1
+                
+            elapsed_s = time.time() - start_s
+            if elapsed_s > 30:
+                break
+            
+        return reward
