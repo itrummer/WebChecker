@@ -50,3 +50,22 @@ class EntailmentUtil():
             return True
         else:
             return False
+        
+    def entails(self, sentence_1, sentence_2, pipeline_id):
+        """ Executes a sequence of entailment checks. 
+        
+        Args:
+            sentence_1: check if this sentence entails other
+            sentence_2: check if this sentence is entailed
+            pipeline_id: describes sequence of checks
+            
+        Returns:
+            True iff all checks succeed
+        """
+        if pipeline_id == 0:
+            return self.entails_hp(sentence_1, sentence_2)
+        else:
+            if self.entails_lp(sentence_1, sentence_2):
+                return self.entails_hp(sentence_1, sentence_2)
+            else:
+                return False

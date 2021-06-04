@@ -74,28 +74,63 @@ def extract_text(html_src):
     except Exception as e:
         print(f'Exception during extraction: {e}')
         return []
+
+class Access():
+    """ Wrapper for Web querying via Google search. """
     
-def gsearch_lines(query, key, cse):
-    """ Retrieves single lines from result of Google search.
+    def __init__(self, key, cse):
+        """ Initialize class by storing credentials. 
+                
+        Args:
+            key: Google API key
+            cse: search engine ID
+        """
+        self.key = key
+        self.cse = cse
     
-    Args:
-        query: retrieve results for this Google query
-        key: Google API key
-        cse: search engine ID
+    def gsearch(self, query):
+        """ Retrieves single sentences from result of Google search.
         
-    Returns:
-        data frame containing result lines with file IDs
-    """
-    items = google_query(query, key, cse)
-    rows = []
-    for docid, result in enumerate(items):
-        url = result['link']
-        print(url)
-        if can_parse(result):
-            print('Processing document')
-            lines = get_web_text(url)
-            for line in lines:
-                rows.append([docid, line])
+        Args:
+            query: retrieve results for this Google query
+            
+        Returns:
+            data frame containing result lines with file IDs
+        """
+        items = google_query(query, self.key, self.cse)
+        rows = []
+        for docid, result in enumerate(items):
+            url = result['link']
+            print(url)
+            if can_parse(result):
+                print('Processing document')
+                lines = get_web_text(url)
+                for line in lines:
+                    rows.append([docid, line])
+            else:
+                print('Did not process document')
+        return pd.DataFrame(rows, columns=['filenr', 'sentence'])
+    
+    def match_triple(self, triple, web_idx, web_filter):
+        """ Retrieves Web sentences that may match given triple. 
+        
+        Args:
+            triple: subject, predicate, object used for Web query
+            web_idx: how to construct query from triple
+            web_filter: whether to filter Web result further
+            
+        Returns:
+            Web sentences related to triple
+        """
+        subj, pred, obj = triple
+        if web_idx == 0:
+            query = subj + ' ' + pred + ' ' + obj
         else:
-            print('Did not process document')
-    return pd.DataFrame(rows, columns=['filenr', 'sentence'])
+            query = '"' + subj + '" ' + pred + ' "'  + obj + '"'
+        
+        sentences = self.gsearch(query)
+        if web_filter == 1:
+            short = sentences.apply(lambda r:len(r['sentence'])<100, axis=1)
+            sentences = sentences[short]
+        
+        return sentences
