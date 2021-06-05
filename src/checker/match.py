@@ -23,6 +23,9 @@ class Detector():
         akb_entity = checker.akb.Access('/Users/immanueltrummer/Papers/WebChecker/akb_entities.tsv')
         self.akbs = [akb_number, akb_entity]
         self.entail = checker.nlp.EntailmentUtil()
+        self.nr_facts = 0
+        self.nr_checks = 0
+        self.init_s = time.time()
         
     def execute(self, plan, timeout_s):
         """ Try to find Web matches for AKB entries with given plan. 
@@ -41,21 +44,41 @@ class Detector():
         web_filter = plan[3]
         ent_seq = plan[4]
         
+        retrieval_s = int(timeout_s / 2)
+        entailment_s = retrieval_s
+        
         req_id = plan[1:]
         akb = self.akbs[akb_idx]
         triple = akb.next_triple(req_id, akb_filter)
-        web_result = self.web.match_triple(triple, web_idx, web_filter)
+        af = triple[0] + ' ' + triple[1] + ' ' + triple[2]
+        self.nr_facts += 1
+        
+        web_result = self.web.match_triple(
+            triple, web_idx, web_filter, retrieval_s)
 
         matches = []        
         start_s = time.time()
-        for l in web_result.loc[:, 'sentence']:            
-            af = triple[0] + ' ' + triple[1] + ' ' +triple[2]
-            if self.entail.entails(l, af, ent_seq):
-                print(f'Found match: {af} -> {l}')
-                self.matches.append((af, l))
-                
+        for row in web_result.itertuples():
+            
+            if self.entail.entails(row.sentence, af, ent_seq):
+                print(f'Found match: {af} -> {row.sentence} ({row.url})')
+                matches.append((af, row.url, row.sentence))
+            
+            self.nr_checks += 1
             elapsed_s = time.time() - start_s
-            if elapsed_s > timeout_s:
+            if elapsed_s > entailment_s:
+                print(f'Timeout during matching')
                 break
         
         return matches
+    
+    def write_stats(self, outfile):
+        """ Write statistics to given output file. 
+        
+        Args:
+            outfile: path to output file
+        """
+        with open(outfile, 'w') as file:
+            file.write('nr_facts\tnr_checks\telapsed_s\n')
+            elapsed_s = time.time() - self.init_s
+            file.write(f'{self.nr_facts}\t{self.nr_checks}\t{elapsed_s}')

@@ -10,13 +10,15 @@ from gym import spaces
 class CheckingEnv(gym.Env):
     """ Environment for optimizing plans for Web checking. """
     
-    def __init__(self, detector):
+    def __init__(self, detector, timeout_s):
         """ Initializes Web checking environment. 
         
         Args:
             detector: engine processing detector plans
+            timeout_s: timeout per detection in seconds
         """
         self.detector = detector
+        self.timeout_s = timeout_s
         self.action_space = spaces.MultiDiscrete([6, 2])
         self.observation_space = spaces.MultiBinary(5)
         self.cur_plan = np.zeros(shape=(5,), dtype=np.int64)
@@ -53,6 +55,6 @@ class CheckingEnv(gym.Env):
             Reward (higher if more matches were found until timeout)
         """
         print(f'Evaluating plan {self.cur_plan}')
-        new_matches = self.detector.execute(self.cur_plan, 30)
+        new_matches = self.detector.execute(self.cur_plan, self.timeout_s)
         self.matches += new_matches
         return len(new_matches)
