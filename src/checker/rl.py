@@ -69,7 +69,9 @@ class CheckingEnv(gym.Env):
         reward = len(new_matches) + 0.01 * new_checks
         
         self.nr_evals += 1
+        
         self.stats_file.write(
-            f'{self.nr_evals},{reward},{",".join(self.cur_plan)}')
+            f'{self.nr_evals},{reward},{self.cur_plan[0]},' \
+            f'{self.cur_plan[1]},{self.cur_plan[2]},{self.cur_plan[3]}\n')
         
         return reward
