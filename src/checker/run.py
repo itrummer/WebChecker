@@ -78,7 +78,7 @@ elif args.mode == 'r':
     with open('rl_stats', 'w') as file:
         detector = checker.match.Detector(args.key, args.cse, 
                                           args.naf_path, args.eaf_path)
-        env = checker.rl.CheckingEnv(detector, file)
+        env = checker.rl.CheckingEnv(detector, 30, file)
         model = A2C('MlpPolicy', env, verbose=True, 
                     normalize_advantage=True).learn(
                         total_timesteps=args.nr_rounds)
