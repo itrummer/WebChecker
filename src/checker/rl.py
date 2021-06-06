@@ -58,7 +58,9 @@ class CheckingEnv(gym.Env):
         """
         print(f'Evaluating plan {self.cur_plan}')
         prior_nr_checks = self.detector.nr_checks
-        full_plan = [0] + self.cur_plan
+        full_plan = np.zeros(shape=(5,), dtype=np.int64)
+        for i in range(4):
+            full_plan[i+1] = self.cur_plan[i]
         new_matches = self.detector.execute(full_plan, self.timeout_s)
         
         self.matches += new_matches
