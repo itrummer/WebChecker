@@ -46,9 +46,9 @@ def write_stats(detector, matches, p_id):
         json_m['url'] = u
         json_m['match'] = m
         json_res['matches'].append(json_m)
-    json_file = f'json_matches_{p_id}'
-    with open(json_file, 'w') as file:
-        json.dump(json_res, json_file)
+    json_path = f'json_matches_{p_id}'
+    with open(json_path, 'w') as file:
+        json.dump(json_res, file)
 
 if args.mode == 'a':
     
@@ -78,10 +78,11 @@ elif args.mode == 'r':
     with open('rl_stats', 'w') as file:
         detector = checker.match.Detector(args.key, args.cse, 
                                           args.naf_path, args.eaf_path)
-        env = checker.rl.CheckingEnv(detector, 30, file)
+        env = checker.rl.CheckingEnv(
+            detector, args.nr_rounds, args.timeout_s, file)
         model = A2C('MlpPolicy', env, verbose=True, 
                     normalize_advantage=True).learn(
-                        total_timesteps=args.nr_rounds)
+                        total_timesteps=1000000)
         write_stats(detector, env.matches, 'RL')
     
 else:

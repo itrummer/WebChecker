@@ -10,15 +10,17 @@ from gym import spaces
 class CheckingEnv(gym.Env):
     """ Environment for optimizing plans for Web checking. """
     
-    def __init__(self, detector, timeout_s, stats_file):
+    def __init__(self, detector, nr_episodes, timeout_s, stats_file):
         """ Initializes Web checking environment. 
         
         Args:
             detector: engine processing detector plans
+            nr_episodes: at most that many episodes
             timeout_s: timeout per detection in seconds
             stats_file: write statistics to this file
         """
         self.detector = detector
+        self.nr_episodes = nr_episodes
         self.timeout_s = timeout_s
         self.stats_file = stats_file
         self.action_space = spaces.MultiDiscrete([5, 2])
@@ -33,6 +35,9 @@ class CheckingEnv(gym.Env):
         Args:
             action: plan property to change and new value
         """
+        if self.nr_evals >= self.nr_episodes:
+            return self.cur_plan, 0, False, {}
+            
         print(action)
         prop, value = action
         if prop < 4:
@@ -67,7 +72,6 @@ class CheckingEnv(gym.Env):
         self.matches += new_matches
         new_checks = self.detector.nr_checks - prior_nr_checks        
         reward = len(new_matches) + 0.01 * new_checks
-        
         self.nr_evals += 1
         
         self.stats_file.write(
