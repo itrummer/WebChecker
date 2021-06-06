@@ -10,19 +10,21 @@ from gym import spaces
 class CheckingEnv(gym.Env):
     """ Environment for optimizing plans for Web checking. """
     
-    def __init__(self, detector, timeout_s):
+    def __init__(self, detector, timeout_s, stats_file):
         """ Initializes Web checking environment. 
         
         Args:
             detector: engine processing detector plans
             timeout_s: timeout per detection in seconds
+            stats_file: write statistics to this file
         """
         self.detector = detector
         self.timeout_s = timeout_s
-        self.action_space = spaces.MultiDiscrete([6, 2])
-        self.observation_space = spaces.MultiBinary(5)
-        self.cur_plan = np.zeros(shape=(5,), dtype=np.int64)
+        self.action_space = spaces.MultiDiscrete([5, 2])
+        self.observation_space = spaces.MultiBinary(4)
+        self.cur_plan = np.zeros(shape=(4,), dtype=np.int64)
         self.matches = []
+        self.nr_evals = 0
         
     def step(self, action):
         """ Change detector plan or search matches. 
@@ -32,7 +34,7 @@ class CheckingEnv(gym.Env):
         """
         print(action)
         prop, value = action
-        if prop < 5:
+        if prop < 4:
             self.cur_plan[prop] = value
             reward = 0
             done = False
@@ -44,7 +46,7 @@ class CheckingEnv(gym.Env):
         
     def reset(self):
         """ Reset current plan. """
-        for i in range(5):
+        for i in range(4):
             self.cur_plan[i] = 0
         return self.cur_plan
     
@@ -55,6 +57,16 @@ class CheckingEnv(gym.Env):
             Reward (higher if more matches were found until timeout)
         """
         print(f'Evaluating plan {self.cur_plan}')
-        new_matches = self.detector.execute(self.cur_plan, self.timeout_s)
+        prior_nr_checks = self.detector.nr_checks
+        full_plan = [0] + self.cur_plan
+        new_matches = self.detector.execute(full_plan, self.timeout_s)
+        
         self.matches += new_matches
-        return len(new_matches)
+        new_checks = self.detector.nr_checks - prior_nr_checks        
+        reward = len(new_matches) + 0.01 * new_checks
+        
+        self.nr_evals += 1
+        self.stats_file.write(
+            f'{self.nr_evals},{reward},{",".join(self.cur_plan)}')
+        
+        return reward
