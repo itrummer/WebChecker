@@ -20,6 +20,7 @@ class CheckingEnv(gym.Env):
         """
         self.detector = detector
         self.timeout_s = timeout_s
+        self.stats_file = stats_file
         self.action_space = spaces.MultiDiscrete([5, 2])
         self.observation_space = spaces.MultiBinary(4)
         self.cur_plan = np.zeros(shape=(4,), dtype=np.int64)
