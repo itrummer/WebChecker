@@ -127,7 +127,7 @@ class TreeEnv(gym.Env):
         
     def reset(self):
         """ Reset decision index and current plan. """
-        self.decision = 0
+        self.decision = 1
         for i in range(5):
             self.cur_plan[i] = 0
         return self.decision
