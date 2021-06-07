@@ -11,7 +11,7 @@ import time
 class Detector():
     """ Detect misinformation on the Web by processing detection plans. """
     
-    def __init__(self, api_key, cse, naf_path, eaf_path):
+    def __init__(self, api_key, cse, naf_path, eaf_path, retry_af):
         """ Initialize AKB and web access entailment checks.
         
         Args:
@@ -19,11 +19,13 @@ class Detector():
             cse: Google custom search engine ID
             naf_path: path to number mistakes
             eaf_path: path to entity mistakes
+            retry_af: re-try anti-facts with different plans?
         """
         self.web = checker.web.Access(api_key, cse)
         akb_number = checker.akb.Access(naf_path)
         akb_entity = checker.akb.Access(eaf_path)
         self.akbs = [akb_number, akb_entity]
+        self.retry_af = retry_af
         self.entail = checker.nlp.EntailmentUtil()
         self.nr_facts = 0
         self.nr_checks = 0
@@ -49,7 +51,7 @@ class Detector():
         retrieval_s = int(timeout_s / 2)
         entailment_s = retrieval_s
         
-        req_id = plan[1:]
+        req_id = plan[1:] if self.retry_af else [0, 0, 0, 0]
         akb = self.akbs[akb_idx]
         triple = akb.next_triple(req_id, akb_filter)
         af = triple[0] + ' ' + triple[1] + ' ' + triple[2]

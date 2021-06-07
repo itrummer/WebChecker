@@ -23,6 +23,7 @@ parser.add_argument('mode', type=str, help='Try all plans (a) or use RL (r)')
 args = parser.parse_args()
 print(args)
 
+retry_af = False
 
 def write_stats(detector, matches, p_id):
     """ Write benchmark results to file. 
@@ -60,8 +61,8 @@ if args.mode == 'a':
     for p in plans:
         
         p_id = "_".join([str(s) for s in list(p)])
-        detector = checker.match.Detector(args.key, args.cse, 
-                                          args.naf_path, args.eaf_path)
+        detector = checker.match.Detector(
+            args.key, args.cse, args.naf_path, args.eaf_path, retry_af)
         matches = []
         
         for i in range(args.nr_rounds):            
@@ -77,7 +78,7 @@ elif args.mode == 'r':
     print('Select plans via reinforcement learning ...')
     with open('rl_stats', 'w') as file:
         detector = checker.match.Detector(
-            args.key, args.cse, args.naf_path, args.eaf_path)
+            args.key, args.cse, args.naf_path, args.eaf_path, retry_af)
         env = checker.rl.TreeEnv(
             detector, args.nr_rounds, args.timeout_s, file)
         model = A2C('MlpPolicy', env, verbose=True, 
