@@ -82,7 +82,7 @@ elif args.mode == 'r':
             detector, args.nr_rounds, args.timeout_s, file)
         model = A2C('MlpPolicy', env, verbose=True, 
                     normalize_advantage=True).learn(
-                        total_timesteps=1000000)
+                        total_timesteps=args.nr_rounds * 5)
         write_stats(detector, env.matches, 'RL')
     
 else:

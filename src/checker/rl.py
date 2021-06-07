@@ -116,6 +116,7 @@ class TreeEnv(gym.Env):
             
         if self.decision >= 5:
             reward = self._evaluate()
+            print(f'Reward: {reward}; evaluations: {self.nr_evals}')
             done = True
         else:
             self.cur_plan[self.decision] = action
@@ -140,13 +141,18 @@ class TreeEnv(gym.Env):
             Reward (higher if more matches were found until timeout)
         """
         print(f'Evaluating plan {self.cur_plan}')
+        self.nr_evals += 1
+        # if self.cur_plan[4] == 1:
+            # return 10
+        # else:
+            # return 0.5
+            
         prior_nr_checks = self.detector.nr_checks
         new_matches = self.detector.execute(self.cur_plan, self.timeout_s)
         
         self.matches += new_matches
         new_checks = self.detector.nr_checks - prior_nr_checks        
-        reward = len(new_matches) + 0.01 * new_checks
-        self.nr_evals += 1
+        reward = len(new_matches) #+ 0.01 * new_checks
         
         stats = [str(self.nr_evals), str(reward)]
         stats += [str(self.cur_plan[i]) for i in range(5)]
