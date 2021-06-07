@@ -98,7 +98,8 @@ class TreeEnv(gym.Env):
         self.timeout_s = timeout_s
         self.stats_file = stats_file
         self.action_space = spaces.Discrete(2)
-        self.observation_space = spaces.MultiDiscrete([2, 2, 2, 2, 2, 6])
+        #self.observation_space = spaces.MultiDiscrete([2, 2, 2, 2, 2, 6])
+        self.observation_space = spaces.Discrete(6)
         self.cur_plan = np.zeros(shape=(5,), dtype=np.int64)
         self.matches = []
         self.nr_evals = 0
@@ -111,7 +112,7 @@ class TreeEnv(gym.Env):
             action: binary decision on next property
         """
         if self.nr_evals >= self.nr_episodes:
-            return self.cur_plan, 0, False, {}
+            return self._observe(), 0, False, {}
             
         if self.decision >= 5:
             reward = self._evaluate()
@@ -155,5 +156,6 @@ class TreeEnv(gym.Env):
     
     def _observe(self):
         """ Generate observation. """
-        dec_array = np.array([self.decision], dtype=np.int64)
-        return np.append(self.cur_plan, dec_array)
+        # dec_array = np.array([self.decision], dtype=np.int64)
+        # return np.append(self.cur_plan, dec_array)
+        return self.decision
