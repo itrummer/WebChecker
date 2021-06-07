@@ -6,6 +6,7 @@ Created on Jun 4, 2021
 import checker.akb
 import checker.nlp
 import checker.web
+import numpy as np
 import time
 
 class Detector():
@@ -51,7 +52,7 @@ class Detector():
         retrieval_s = int(timeout_s / 2)
         entailment_s = retrieval_s
         
-        req_id = plan[1:] if self.retry_af else [0, 0, 0, 0]
+        req_id = plan[1:] if self.retry_af else np.zeros(4)
         akb = self.akbs[akb_idx]
         triple = akb.next_triple(req_id, akb_filter)
         af = triple[0] + ' ' + triple[1] + ' ' + triple[2]
