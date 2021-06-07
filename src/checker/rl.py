@@ -148,7 +148,7 @@ class TreeEnv(gym.Env):
         self.nr_evals += 1
         
         stats = [str(self.nr_evals), str(reward)]
-        stats += [self.cur_plan[i] for i in range(5)]
+        stats += [str(self.cur_plan[i]) for i in range(5)]
         self.stats_file.write(",".join(stats) + '\n')
         
         return reward
