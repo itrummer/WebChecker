@@ -98,7 +98,7 @@ class TreeEnv(gym.Env):
         self.timeout_s = timeout_s
         self.stats_file = stats_file
         self.action_space = spaces.Discrete(2)
-        self.observation_space = spaces.Discrete(6)
+        self.observation_space = spaces.MultiDiscrete([2, 2, 2, 2, 2, 6])
         self.cur_plan = np.zeros(shape=(5,), dtype=np.int64)
         self.matches = []
         self.nr_evals = 0
@@ -123,14 +123,14 @@ class TreeEnv(gym.Env):
         
         self.decision += 1
             
-        return self.decision, reward, done, {}
+        return self._observe(), reward, done, {}
         
     def reset(self):
         """ Reset decision index and current plan. """
         self.decision = 1
         for i in range(5):
             self.cur_plan[i] = 0
-        return self.decision
+        return self._observe()
     
     def _evaluate(self):
         """ Evaluates current detector plan and returns reward. 
@@ -152,3 +152,8 @@ class TreeEnv(gym.Env):
         self.stats_file.write(",".join(stats) + '\n')
         
         return reward
+    
+    def _observe(self):
+        """ Generate observation. """
+        dec_array = np.array([self.decision], dtype=np.int64)
+        return np.append(self.cur_plan, dec_array)
