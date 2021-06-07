@@ -98,7 +98,7 @@ class TreeEnv(gym.Env):
         self.timeout_s = timeout_s
         self.stats_file = stats_file
         self.action_space = spaces.Discrete(2)
-        self.observation_space = spaces.Discrete(5)
+        self.observation_space = spaces.Discrete(6)
         self.cur_plan = np.zeros(shape=(5,), dtype=np.int64)
         self.matches = []
         self.nr_evals = 0
