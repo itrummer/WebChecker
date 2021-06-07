@@ -76,9 +76,9 @@ elif args.mode == 'r':
     # Use RL to converge to near-optimal plans
     print('Select plans via reinforcement learning ...')
     with open('rl_stats', 'w') as file:
-        detector = checker.match.Detector(args.key, args.cse, 
-                                          args.naf_path, args.eaf_path)
-        env = checker.rl.CheckingEnv(
+        detector = checker.match.Detector(
+            args.key, args.cse, args.naf_path, args.eaf_path)
+        env = checker.rl.TreeEnv(
             detector, args.nr_rounds, args.timeout_s, file)
         model = A2C('MlpPolicy', env, verbose=True, 
                     normalize_advantage=True).learn(
