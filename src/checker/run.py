@@ -10,6 +10,7 @@ import itertools
 import json
 import numpy as np
 from stable_baselines3 import A2C
+import stable_baselines3.common.evaluation
 
 # Login data can be retrieved at https://programmablesearchengine.google.com/
 parser = argparse.ArgumentParser(description='Simple test for WebChecker')
@@ -78,12 +79,24 @@ elif args.mode == 'r':
     print('Select plans via reinforcement learning ...')
     with open('rl_stats', 'w') as file:
         detector = checker.match.Detector(
-            args.key, args.cse, args.naf_path, args.eaf_path, retry_af)
+            args.key, args.cse, args.naf_path, 
+            args.eaf_path, retry_af)
         env = checker.rl.TreeEnv(
-            detector, args.nr_rounds, args.timeout_s, file)
-        model = A2C('MlpPolicy', env, verbose=True, 
-                    normalize_advantage=True).learn(
-                        total_timesteps=args.nr_rounds * 5)
+            detector, args.nr_rounds, 
+            args.timeout_s, file)
+        model = A2C(
+            'MlpPolicy', env, verbose=True,
+            normalize_advantage=True)
+        
+        learning_steps = (args.nr_rounds / 4) * 5
+        eval_episodes = (args.nr_rounds / 4) * 3
+        print(f'Learning for {learning_steps} steps ...')
+        model.learn(total_timesteps=learning_steps)
+        print(f'Evaluating for {eval_episodes} episodes ...')
+        stable_baselines3.common.evaluation.evaluate_policy(
+            model, env, n_eval_episodes=eval_episodes, 
+            deterministic=True)
+        
         write_stats(detector, env.matches, 'RL')
     
 else:
