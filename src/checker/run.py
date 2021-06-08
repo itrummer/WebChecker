@@ -57,7 +57,7 @@ if args.mode == 'a':
     # Try out all plans for comparison
     print('Trying all plans ...')
     z_o = [0, 1]
-    plans = [np.array(p) for p in itertools.product([0], z_o, z_o, z_o, z_o)]
+    plans = [np.array(p) for p in itertools.product(z_o, z_o, z_o, z_o, z_o)]
     
     for p in plans:
         
@@ -88,7 +88,7 @@ elif args.mode == 'r':
             'MlpPolicy', env, verbose=True,
             normalize_advantage=True)
         
-        learning_steps = (args.nr_rounds / 4) * 5
+        learning_steps = (args.nr_rounds / 4) * 6
         eval_episodes = (args.nr_rounds / 4) * 3
         print(f'Learning for {learning_steps} steps ...')
         model.learn(total_timesteps=learning_steps)
