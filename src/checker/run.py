@@ -88,12 +88,12 @@ elif args.mode == 'r':
             'MlpPolicy', env, verbose=True,
             normalize_advantage=True)
         
-        learning_steps = (args.nr_rounds / 4) * 6
-        eval_episodes = (args.nr_rounds / 4) * 3
+        learning_steps = int((args.nr_rounds / 4) * 6)
         print(f'Learning for {learning_steps} steps ...')
         model.learn(total_timesteps=learning_steps)
         
         best_plan = env.best_plan()
+        eval_episodes = int((args.nr_rounds / 4) * 3)
         print(f'Evaluating {best_plan} for {eval_episodes} episodes ...')
         matches = env.matches
         for i in range(eval_episodes):
