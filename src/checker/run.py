@@ -92,12 +92,14 @@ elif args.mode == 'r':
         eval_episodes = (args.nr_rounds / 4) * 3
         print(f'Learning for {learning_steps} steps ...')
         model.learn(total_timesteps=learning_steps)
-        print(f'Evaluating for {eval_episodes} episodes ...')
-        stable_baselines3.common.evaluation.evaluate_policy(
-            model, env, n_eval_episodes=eval_episodes, 
-            deterministic=True)
         
-        write_stats(detector, env.matches, 'RL')
+        best_plan = env.best_plan()
+        print(f'Evaluating {best_plan} for {eval_episodes} episodes ...')
+        matches = env.matches
+        for i in range(eval_episodes):
+            matches += detector.execute(best_plan, args.timeout_s)
+        
+        write_stats(detector, matches, 'RL')
     
 else:
     
